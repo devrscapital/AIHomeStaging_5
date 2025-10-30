@@ -1,0 +1,5 @@
+{
+  "name": "Copy of AI Home Staging Retoucher",
+  "description": "An application that allows users to upload photos of their property and receive AI-retouched versions in a modern, clean home staging style, perfect for real estate listings. Generated images are watermarked until a simulated payment unlocks the download feature.",
+  "requestFramePermissions": []
+}
