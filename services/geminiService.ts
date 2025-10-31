@@ -1,5 +1,4 @@
 
-
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -16,7 +15,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const retouchImage = async (file: File): Promise<string> => {
-  // FIX: Use `process.env.API_KEY` as required by the Gemini API guidelines.
+  // Fix: Aligned with Gemini API guidelines by using process.env.API_KEY for the API key.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const base64Data = await fileToBase64(file);
