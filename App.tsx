@@ -28,12 +28,12 @@ const faqData = [
   {
     question: "Comment utiliser l'application ?",
     answer:
-      "C’est très simple ! 1️⃣ Téléversez une ou plusieurs photos de vos pièces. 2️⃣ L’intelligence artificielle génère automatiquement une version redécorée en quelques secondes. 3️⃣ Si le résultat vous plaît, utilisez un Token pour débloquer l’image, retirer le filigrane et la télécharger en haute qualité. Facile, rapide et 100 % digital !"
+      "C’est très simple ! 1️⃣ Téléversez une ou plusieurs photos de vos pièces. 2️⃣ L’intelligence artificielle génère automatiquement une version redécorée en quelques secondes. 3️⃣ Si le résultat vous plaît, utilisez un Crédit pour débloquer l’image, retirer le filigrane et la télécharger en haute qualité. Facile, rapide et 100 % digital !"
   },
   {
-    question: "Que sont les Tokens ?",
+    question: "Que sont les Crédits ?",
     answer:
-      "Les Tokens sont la monnaie virtuelle de l’application. Chaque Token vous permet de débloquer et télécharger une image retouchée sans filigrane. Vous recevez un Token gratuit à l’inscription pour tester le service complet et découvrir la puissance du Home Staging virtuel."
+      "Les Crédits sont la monnaie virtuelle de l’application. Chaque Crédit vous permet de débloquer et télécharger une image retouchée sans filigrane. Vous recevez un Crédit gratuit à l’inscription pour tester le service complet et découvrir la puissance du Home Staging virtuel."
   },
   {
     question: "Mes photos sont-elles confidentielles ?",
@@ -108,7 +108,7 @@ const carouselData = [
 const App: React.FC = () => {
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [tokenBalance, setTokenBalance] = useState<number>(0);
+  const [creditBalance, setCreditBalance] = useState<number>(0);
   const [view, setView] = useState<'main' | 'pricing' | 'auth'>('main');
   const [user, setUser] = useState<User | null>(null);
   const [authRedirect, setAuthRedirect] = useState<'pricing' | null>(null);
@@ -122,11 +122,11 @@ const App: React.FC = () => {
       if (currentUser) {
         const appUser: User = { uid: currentUser.uid, email: currentUser.email };
         setUser(appUser);
-        const storedTokens = localStorage.getItem(`tokens_${appUser.uid}`);
-        setTokenBalance(storedTokens ? parseInt(storedTokens, 10) : 0);
+        const storedCredits = localStorage.getItem(`credits_${appUser.uid}`);
+        setCreditBalance(storedCredits ? parseInt(storedCredits, 10) : 0);
       } else {
         setUser(null);
-        setTokenBalance(0);
+        setCreditBalance(0);
       }
       setIsLoading(false);
     });
@@ -198,37 +198,37 @@ const App: React.FC = () => {
       setView('auth');
       return;
     }
-    if (tokenBalance < 1) {
-      alert("Vous n'avez pas assez de tokens. Veuillez en acheter.");
+    if (creditBalance < 1) {
+      alert("Vous n'avez pas assez de crédits. Veuillez en acheter.");
       setView('pricing');
       return;
     }
     
-    const newBalance = tokenBalance - 1;
-    localStorage.setItem(`tokens_${user.uid}`, String(newBalance));
-    setTokenBalance(newBalance);
+    const newBalance = creditBalance - 1;
+    localStorage.setItem(`credits_${user.uid}`, String(newBalance));
+    setCreditBalance(newBalance);
     setImages(prev =>
       prev.map(img => (img.id === id ? { ...img, isUnlocked: true } : img))
     );
   };
 
-  const handlePurchase = async (tokens: number) => {
+  const handlePurchase = async (credits: number) => {
     if (!user) {
         console.error("User not logged in, cannot process purchase.");
         setView('auth');
         return;
     }
     
-    const newBalance = tokenBalance + tokens;
-    localStorage.setItem(`tokens_${user.uid}`, String(newBalance));
-    setTokenBalance(newBalance);
+    const newBalance = creditBalance + credits;
+    localStorage.setItem(`credits_${user.uid}`, String(newBalance));
+    setCreditBalance(newBalance);
     setView('main');
   };
   
   const handleLoginSuccess = (loggedInUser: User, isNewUser: boolean) => {
     if (isNewUser) {
-      localStorage.setItem(`tokens_${loggedInUser.uid}`, '1'); // Welcome token
-      setTokenBalance(1);
+      localStorage.setItem(`credits_${loggedInUser.uid}`, '1'); // Welcome credit
+      setCreditBalance(1);
     }
     
     if (authRedirect === 'pricing') {
@@ -252,12 +252,12 @@ const App: React.FC = () => {
 
   const handleDeleteAccount = async () => {
     if (user) {
-      localStorage.removeItem(`tokens_${user.uid}`);
+      localStorage.removeItem(`credits_${user.uid}`);
       setIsAccountModalOpen(false);
     }
   };
 
-  const handleBuyTokensClick = () => {
+  const handleBuyCreditsClick = () => {
     if (user) {
       setView('pricing');
     } else {
@@ -298,14 +298,14 @@ const App: React.FC = () => {
             </svg>
           </button>
           {user ? (
-            <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="flex items-center justify-end flex-wrap gap-2">
                <div className="hidden sm:flex items-center space-x-2">
                  <span className="text-sm text-gray-400">{user.email}</span>
                  <span className="text-gray-600">|</span>
                </div>
               <div className="text-center">
-                <span className="font-bold text-lg text-brand-secondary">{tokenBalance}</span>
-                <span className="text-sm text-gray-400"> Token(s)</span>
+                <span className="font-bold text-lg text-brand-secondary">{creditBalance}</span>
+                <span className="text-sm text-gray-400"> Crédit(s)</span>
               </div>
               <button 
                 onClick={() => setIsAccountModalOpen(true)}
@@ -314,7 +314,7 @@ const App: React.FC = () => {
                 Mon Compte
               </button>
               <button 
-                onClick={handleBuyTokensClick}
+                onClick={handleBuyCreditsClick}
                 className="px-3 py-2 bg-brand-primary hover:bg-brand-secondary text-white font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105 text-sm"
               >
                 Acheter
@@ -366,7 +366,7 @@ const App: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-8">
           {images.map(image => (
-            <ImageResultCard key={image.id} image={image} onUnlock={handleUnlockImage} tokenBalance={tokenBalance} onRegenerate={handleRegenerate} />
+            <ImageResultCard key={image.id} image={image} onUnlock={handleUnlockImage} creditBalance={creditBalance} onRegenerate={handleRegenerate} />
           ))}
         </div>
         
@@ -430,12 +430,12 @@ const App: React.FC = () => {
             <ol className="list-decimal list-inside space-y-1">
               <li><span className="font-semibold">Téléchargez vos photos :</span> Glissez-déposez ou sélectionnez des images de pièces à redécorer.</li>
               <li><span className="font-semibold">L'IA transforme vos espaces :</span> Notre IA analyse votre photo et génère une version moderne et épurée en quelques instants.</li>
-              <li><span className="font-semibold">Débloquez et téléchargez :</span> Utilisez un "Token" pour retirer le filigrane et télécharger votre nouvelle image en haute qualité, prête pour vos annonces.</li>
+              <li><span className="font-semibold">Débloquez et téléchargez :</span> Utilisez un "Crédit" pour retirer le filigrane et télécharger votre nouvelle image en haute qualité, prête pour vos annonces.</li>
             </ol>
           </div>
           <div>
-            <h3 className="font-bold text-white mb-1">À propos des Tokens</h3>
-            <p>Les tokens sont la monnaie de l'application. Chaque token vous permet de débloquer une image. Un token de bienvenue est offert à chaque nouvelle inscription pour vous permettre de tester le service complet. Vous pouvez acheter des tokens supplémentaires via la page "Acheter".</p>
+            <h3 className="font-bold text-white mb-1">À propos des Crédits</h3>
+            <p>Les crédits sont la monnaie de l'application. Chaque crédit vous permet de débloquer une image. Un crédit de bienvenue est offert à chaque nouvelle inscription pour vous permettre de tester le service complet. Vous pouvez acheter des crédits supplémentaires via la page "Acheter".</p>
           </div>
           <div>
             <h3 className="font-bold text-white mb-1">Confidentialité de vos images</h3>

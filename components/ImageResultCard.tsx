@@ -5,11 +5,11 @@ import Loader from './Loader';
 interface ImageResultCardProps {
   image: ProcessedImage;
   onUnlock: (id: string) => void;
-  tokenBalance: number;
-  onRegenerate: (id: string) => void;
+  creditBalance: number;
+  onRegenerate: (id:string) => void;
 }
 
-const ImageResultCard: React.FC<ImageResultCardProps> = ({ image, onUnlock, tokenBalance, onRegenerate }) => {
+const ImageResultCard: React.FC<ImageResultCardProps> = ({ image, onUnlock, creditBalance, onRegenerate }) => {
   const handleDownload = () => {
     if (image.retouchedUrl && image.isUnlocked) {
       const link = document.createElement('a');
@@ -37,10 +37,10 @@ const ImageResultCard: React.FC<ImageResultCardProps> = ({ image, onUnlock, toke
     return (
       <button
         onClick={() => onUnlock(image.id)}
-        disabled={tokenBalance < 1}
+        disabled={creditBalance < 1}
         className="w-full px-4 py-2 mt-2 font-bold text-white transition-colors rounded-md bg-brand-primary hover:bg-brand-secondary disabled:bg-brand-gray disabled:cursor-not-allowed"
       >
-        {tokenBalance < 1 ? "Tokens insuffisants" : "Utiliser 1 Token pour Débloquer"}
+        {creditBalance < 1 ? "Crédits insuffisants" : "Utiliser 1 Crédit pour Débloquer"}
       </button>
     );
   };

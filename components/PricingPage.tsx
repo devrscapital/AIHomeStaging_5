@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 
 interface PricingPageProps {
-  onPurchase: (tokens: number) => void;
+  onPurchase: (credits: number) => void;
   onBack: () => void;
 }
 
 const pricingTiers = [
-  { tokens: 1, price: 1, bestValue: false },
-  { tokens: 5, price: 4.5, bestValue: false, discount: '10%' },
-  { tokens: 10, price: 8, bestValue: true, discount: '20%' },
-  { tokens: 25, price: 18, bestValue: false, discount: '28%' },
+  { credits: 1, price: 1, bestValue: false },
+  { credits: 5, price: 4.5, bestValue: false, discount: '10%' },
+  { credits: 10, price: 8, bestValue: true, discount: '20%' },
+  { credits: 25, price: 18, bestValue: false, discount: '28%' },
 ];
 
 const PricingPage: React.FC<PricingPageProps> = ({ onPurchase, onBack }) => {
   const [processingTier, setProcessingTier] = useState<number | null>(null);
 
-  const handlePurchaseClick = (tokens: number) => {
-    setProcessingTier(tokens);
-    onPurchase(tokens);
+  const handlePurchaseClick = (credits: number) => {
+    setProcessingTier(credits);
+    onPurchase(credits);
   };
   
   return (
@@ -27,16 +27,16 @@ const PricingPage: React.FC<PricingPageProps> = ({ onPurchase, onBack }) => {
           &larr; Retour à l'application
         </button>
 
-        <h1 className="text-4xl font-bold text-center mb-2 text-white">Acheter des Tokens</h1>
-        <p className="text-center text-gray-400 mb-12">Chaque token vous permet de débloquer et télécharger une image en haute qualité.</p>
+        <h1 className="text-4xl font-bold text-center mb-2 text-white">Acheter des Crédits</h1>
+        <p className="text-center text-gray-400 mb-12">Chaque crédit vous permet de débloquer et télécharger une image en haute qualité.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {pricingTiers.map(tier => (
-            <div key={tier.tokens} className={`bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col border-2 ${tier.bestValue ? 'border-brand-primary' : 'border-gray-700'} transform hover:-translate-y-2 transition-transform`}>
+            <div key={tier.credits} className={`bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col border-2 ${tier.bestValue ? 'border-brand-primary' : 'border-gray-700'} transform hover:-translate-y-2 transition-transform`}>
               {tier.bestValue && (
                   <span className="bg-brand-primary text-white text-xs font-bold px-3 py-1 rounded-full absolute -top-3 right-3">MEILLEURE OFFRE</span>
               )}
-              <h2 className="text-2xl font-bold text-white">{tier.tokens} Token{tier.tokens > 1 ? 's' : ''}</h2>
+              <h2 className="text-2xl font-bold text-white">{tier.credits} Crédit{tier.credits > 1 ? 's' : ''}</h2>
               <p className="text-gray-400 mb-4 h-6">{tier.discount && `Économisez ${tier.discount} !`}</p>
               
               <div className="my-4">
@@ -45,15 +45,15 @@ const PricingPage: React.FC<PricingPageProps> = ({ onPurchase, onBack }) => {
               </div>
               
               <p className="text-gray-500 text-sm mb-6">
-                {(tier.price / tier.tokens).toFixed(2)}€ par token
+                {(tier.price / tier.credits).toFixed(2)}€ par crédit
               </p>
 
               <button 
-                onClick={() => handlePurchaseClick(tier.tokens)}
+                onClick={() => handlePurchaseClick(tier.credits)}
                 disabled={processingTier !== null}
                 className={`w-full mt-auto px-4 py-2 font-bold text-white rounded-md transition-colors ${tier.bestValue ? 'bg-brand-primary hover:bg-brand-secondary' : 'bg-gray-600 hover:bg-brand-primary'} disabled:bg-brand-gray disabled:cursor-wait`}
               >
-                {processingTier === tier.tokens ? 'Traitement...' : 'Acheter maintenant'}
+                {processingTier === tier.credits ? 'Traitement...' : 'Acheter maintenant'}
               </button>
             </div>
           ))}

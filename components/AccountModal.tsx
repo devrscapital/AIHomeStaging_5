@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 // FIX: Removed unused imports from `firebase/auth` and will use methods on the auth.currentUser object directly.
 import { auth } from '../firebase';
@@ -89,7 +88,7 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onDe
 
   const handleDelete = async () => {
     const confirmationText = "Êtes-vous sûr de vouloir supprimer votre compte ?\n\n" +
-      "Cette action est irréversible. Toutes vos données, y compris les tokens restants, seront définitivement supprimées.\n\n" +
+      "Cette action est irréversible. Toutes vos données, y compris les crédits restants, seront définitivement supprimées.\n\n" +
       "Conformément au RGPD, cette action exercera votre droit à l'oubli.";
       
     if (window.confirm(confirmationText)) {
@@ -179,7 +178,7 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onDe
           {/* Invoice Section */}
           <section>
             <h3 className="text-lg font-semibold text-white mb-4">Facturation</h3>
-            <p className="text-sm mb-4">Demandez un récapitulatif de vos achats de tokens.</p>
+            <p className="text-sm mb-4">Demandez un récapitulatif de vos achats de crédits.</p>
              {invoiceMessage && (
                 <p className="text-sm text-center text-green-400 mb-4">{invoiceMessage}</p>
               )}
@@ -198,7 +197,7 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onDe
           <section className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-red-400 mb-2">Zone de Danger</h3>
             <p className="text-sm mb-4">
-              La suppression de votre compte est définitive. Toutes vos données, y compris les tokens restants, seront perdues. Cette action est irréversible et conforme au RGPD concernant votre droit à l'oubli.
+              La suppression de votre compte est définitive. Toutes vos données, y compris les crédits restants, seront perdues. Cette action est irréversible et conforme au RGPD concernant votre droit à l'oubli.
             </p>
             <button
               onClick={handleDelete}
