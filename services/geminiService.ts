@@ -22,8 +22,8 @@ export const retouchImage = async (file: File): Promise<string> => {
 
   try {
     const response = await ai.models.generateContent({
-        // MODIFICATION: Changement du modèle pour un autre potentiellement moins restreint.
-        model: 'gemini-2.5-flash',
+        // Retour au modèle spécialisé 'gemini-2.5-flash-image' pour de meilleurs résultats.
+        model: 'gemini-2.5-flash-image',
         contents: {
             parts: [
             {
@@ -37,12 +37,10 @@ export const retouchImage = async (file: File): Promise<string> => {
             },
             ],
         },
-        // IMPORTANT: Le modèle `gemini-2.5-flash` ne supporte pas `responseModalities`.
-        // Cette configuration est spécifique à `gemini-2.5-flash-image`.
-        // Nous la retirons pour assurer la compatibilité.
-        // config: {
-        //     responseModalities: [Modality.IMAGE],
-        // },
+        config: {
+            // Configuration requise pour forcer le modèle à retourner une image.
+            responseModalities: [Modality.IMAGE],
+        },
     });
 
     if (response.promptFeedback?.blockReason) {
@@ -57,15 +55,30 @@ export const retouchImage = async (file: File): Promise<string> => {
       throw new Error("L'IA n'a pas pu générer d'image. Essayez une photo différente ou de meilleure qualité.");
     }
 
-    // Avec gemini-2.5-flash, la réponse peut être dans un format légèrement différent.
-    // Il faut s'assurer de bien extraire la partie image.
-    const imagePart = response.candidates[0].content.parts.find(part => part.inlineData);
+    // CORRECTIF: Ajout de vérifications robustes pour éviter le crash "Cannot read properties of undefined".
+    // La structure de la réponse peut être vide si le modèle ne peut pas traiter la demande.
+    const candidate = response.candidates[0];
+    if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+        const finishReason = candidate.finishReason || 'INCONNUE';
+        console.error("Réponse de l'IA invalide ou vide. Finish reason:", finishReason, "Candidate:", candidate);
+        throw new Error(`La réponse de l'IA est vide (Raison: ${finishReason}). Le modèle n'a peut-être pas pu traiter l'image.`);
+    }
+
+    const imagePart = candidate.content.parts.find(part => part.inlineData);
 
     if (imagePart && imagePart.inlineData) {
       return imagePart.inlineData.data;
     }
     
-    throw new Error("Aucune donnée d'image trouvée dans la réponse de l'IA. Le modèle a peut-être répondu avec du texte.");
+    // Si aucune image n'est trouvée, on vérifie si du texte a été retourné pour donner une erreur plus claire.
+    const textPart = candidate.content.parts.find(part => part.text);
+    if (textPart && textPart.text) {
+        console.warn("L'IA a répondu avec du texte au lieu d'une image:", textPart.text);
+        throw new Error(`L'IA a répondu avec du texte au lieu d'une image. Cela peut arriver si le modèle utilisé n'est pas adapté à l'édition d'images.`);
+    }
+    
+    throw new Error("Aucune donnée d'image trouvée dans la réponse de l'IA. Le format de la réponse est inattendu.");
+
   } catch (error) {
     console.error("Erreur détaillée de l'API Gemini:", error);
     
@@ -74,12 +87,13 @@ export const retouchImage = async (file: File): Promise<string> => {
             throw new Error('Clé API invalide. Vérifiez la configuration de votre projet.');
         }
         if (error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
-            throw new Error("Votre quota gratuit est épuisé ou le modèle est surchargé. Pour continuer à utiliser le service, assurez-vous que la facturation est bien activée ET liée à ce projet sur la console Google Cloud. C'est le fonctionnement normal de l'API une fois les crédits gratuits utilisés.");
+            throw new Error("Votre quota pour le modèle 'gemini-2.5-flash-image' est épuisé ou le modèle est surchargé. Pour continuer, assurez-vous que la facturation est activée ET liée à ce projet sur la console Google Cloud.");
         }
         if (error.message.includes('Deadline Exceeded') || error.message.includes('503')) {
             throw new Error("Le service est temporairement surchargé. Veuillez réessayer dans quelques instants.");
         }
-        if (error.message.includes('Retouche bloquée')) {
+        // Pas besoin de re-throw les erreurs déjà formatées
+        if (error.message.startsWith("Retouche bloquée") || error.message.startsWith("La réponse de l'IA est vide") || error.message.startsWith("L'IA a répondu avec du texte") || error.message.startsWith("Aucune donnée d'image trouvée")) {
           throw error;
         }
         // Pour toute autre erreur, affichez le message réel de l'API pour un meilleur débogage.
