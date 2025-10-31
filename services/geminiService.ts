@@ -15,8 +15,8 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const retouchImage = async (file: File): Promise<string> => {
-  // Fix: Aligned with Gemini API guidelines by using process.env.API_KEY for the API key.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // CORRECTIF DÉFINITIF: Utilisation de `import.meta.env.VITE_API_KEY` qui est la seule méthode correcte pour Vite.
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
   const base64Data = await fileToBase64(file);
   const prompt = `Retouche cette photo pour un 'home staging' virtuel hyper-réaliste. L'objectif est de moderniser et de désencombrer l'espace pour le rendre plus attractif pour la vente, tout en conservant impérativement la structure, les dimensions, et l'agencement d'origine de la pièce (murs, fenêtres, portes, sols). Le résultat doit être photoréaliste, lumineux, et donner l'impression que c'est la même pièce, mais redécorée professionnellement.`;

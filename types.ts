@@ -1,9 +1,11 @@
+
 // Fix: Replaced failing vite/client type reference and defined global types for
 // `import.meta.env` (for Firebase) and `process.env.API_KEY` (for Gemini API)
 // to resolve TypeScript errors and align with Gemini SDK guidelines.
 declare global {
   interface ImportMeta {
     readonly env: {
+      readonly VITE_API_KEY: string;
       readonly VITE_FIREBASE_API_KEY: string;
       readonly VITE_FIREBASE_AUTH_DOMAIN: string;
       readonly VITE_FIREBASE_PROJECT_ID: string;
@@ -13,11 +15,6 @@ declare global {
       readonly VITE_FIREBASE_MEASUREMENT_ID: string;
     };
   }
-  var process: {
-    env: {
-      API_KEY: string;
-    };
-  };
 }
 
 export interface ProcessedImage {
