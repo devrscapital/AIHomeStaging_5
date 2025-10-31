@@ -1,5 +1,8 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+// CORRECTIF DÉFINITIF: Utiliser les imports de compatibilité Firebase v8.
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import { auth } from './firebase';
 import type { ProcessedImage, User } from './types';
 import { retouchImage } from './services/geminiService';
@@ -116,7 +119,7 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser: FirebaseUser | null) => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser: firebase.User | null) => {
       if (currentUser) {
         const appUser: User = { uid: currentUser.uid, email: currentUser.email };
         setUser(appUser);
@@ -125,13 +128,10 @@ const App: React.FC = () => {
       } else {
         setUser(null);
         setTokenBalance(0);
-        // Do not clear images on logout, user might just want to switch accounts.
-        // setImages([]); 
       }
       setIsLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
@@ -232,8 +232,6 @@ const App: React.FC = () => {
       setTokenBalance(1);
     }
     
-    // onAuthStateChanged will handle setting the user state.
-    // We just need to navigate back.
     if (authRedirect === 'pricing') {
       setView('pricing');
       setAuthRedirect(null);
@@ -244,9 +242,8 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      // onAuthStateChanged will handle state cleanup
-      setImages([]); // Clear images on explicit logout
+      await auth.signOut();
+      setImages([]); 
       setView('main');
     } catch (error) {
       console.error("Error signing out: ", error);
@@ -258,7 +255,6 @@ const App: React.FC = () => {
     if (user) {
       localStorage.removeItem(`tokens_${user.uid}`);
       setIsAccountModalOpen(false);
-      // The onAuthStateChanged listener will handle the rest of the UI update upon user deletion.
     }
   };
 

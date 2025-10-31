@@ -1,3 +1,5 @@
+
+
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -14,8 +16,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const retouchImage = async (file: File): Promise<string> => {
-  // Fix: Per coding guidelines, the API key must be obtained from process.env.API_KEY
-  // and used to directly initialize the GoogleGenAI client.
+  // FIX: Use `process.env.API_KEY` as required by the Gemini API guidelines.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const base64Data = await fileToBase64(file);
@@ -26,15 +27,15 @@ export const retouchImage = async (file: File): Promise<string> => {
         model: 'gemini-2.5-flash-image',
         contents: {
             parts: [
-                {
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: file.type,
-                    },
+            {
+                inlineData: {
+                data: base64Data,
+                mimeType: file.type,
                 },
-                {
-                    text: prompt,
-                },
+            },
+            {
+                text: prompt,
+            },
             ],
         },
         config: {
@@ -42,14 +43,17 @@ export const retouchImage = async (file: File): Promise<string> => {
         },
     });
 
-    for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-            return part.inlineData.data;
+    if (response.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                return part.inlineData.data;
+            }
         }
     }
-    throw new Error("No image data found in the response from Gemini API.");
+    
+    throw new Error("Aucune donnée d'image trouvée dans la réponse de l'API Gemini.");
   } catch (error) {
-    console.error("Error retouching image with Gemini API:", error instanceof Error ? error.message : String(error));
-    throw new Error("Failed to retouch image. Please try again.");
+    console.error("Erreur lors de la retouche de l'image avec l'API Gemini:", error instanceof Error ? error.message : String(error));
+    throw new Error("Échec de la retouche de l'image. Veuillez réessayer.");
   }
 };

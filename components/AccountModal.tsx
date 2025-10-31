@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { updatePassword, deleteUser } from 'firebase/auth';
+// FIX: Removed unused imports from `firebase/auth` and will use methods on the auth.currentUser object directly.
 import { auth } from '../firebase';
 import type { User } from '../types';
 
@@ -41,7 +42,8 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onDe
 
     setIsPasswordChanging(true);
     try {
-      await updatePassword(auth.currentUser, newPassword);
+      // FIX: Use Firebase v8 compat syntax for updatePassword.
+      await auth.currentUser.updatePassword(newPassword);
       setPasswordMessage({ type: 'success', text: 'Mot de passe mis à jour avec succès !' });
       setNewPassword('');
       setConfirmPassword('');
@@ -71,7 +73,8 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onDe
     if (window.confirm(confirmationText)) {
       if (auth.currentUser) {
         try {
-          await deleteUser(auth.currentUser);
+          // FIX: Use Firebase v8 compat syntax for deleting a user. The method is `delete()`.
+          await auth.currentUser.delete();
           onDeleteAccount();
           onClose();
         } catch (error) {

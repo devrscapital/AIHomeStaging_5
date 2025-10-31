@@ -1,9 +1,8 @@
+
 import React, { useState } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail
-} from 'firebase/auth';
+// CORRECTIF DÉFINITIF: Utiliser les imports de compatibilité Firebase v8.
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import { auth } from '../firebase';
 import type { User } from '../types';
 
@@ -11,6 +10,8 @@ interface AuthPageProps {
   onLoginSuccess: (user: User, isNewUser: boolean) => void;
   onBack: () => void;
 }
+
+type AuthError = firebase.auth.AuthError;
 
 const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
@@ -28,9 +29,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
   };
   
   const handleFirebaseError = (err: unknown) => {
-    // FIX: The `FirebaseError` type is not exported from the `firebase/auth` module.
-    // Cast the error to a generic object with a `code` property to handle different Firebase auth errors.
-    const error = err as { code: string };
+    const error = err as AuthError;
     switch (error.code) {
       case 'auth/user-not-found':
       case 'auth/wrong-password':
@@ -68,7 +67,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
     setMessage(null);
     
     try {
-      await sendPasswordResetEmail(auth, email);
+      await auth.sendPasswordResetEmail(email);
       setMessage(`Si un compte est associé à ${email}, un lien de réinitialisation a été envoyé.`);
       setTimeout(() => {
         handleModeChange('login');
@@ -92,19 +91,20 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
     
     try {
       if (authMode === 'signup') {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const { user } = userCredential;
-        onLoginSuccess({ uid: user.uid, email: user.email }, true);
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        if (userCredential.user) {
+          onLoginSuccess({ uid: userCredential.user.uid, email: userCredential.user.email }, true);
+        }
       } else { // login
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const { user } = userCredential;
-        onLoginSuccess({ uid: user.uid, email: user.email }, false);
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+         if (userCredential.user) {
+          onLoginSuccess({ uid: userCredential.user.uid, email: userCredential.user.email }, false);
+        }
       }
     } catch (err) {
       handleFirebaseError(err);
       setIsProcessing(false);
     }
-    // No need for finally block here, onLoginSuccess navigates away
   };
 
   const renderContent = () => {

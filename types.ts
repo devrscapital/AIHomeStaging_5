@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 export interface ProcessedImage {
   id: string;
   originalFile: File;
