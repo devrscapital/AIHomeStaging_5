@@ -11,6 +11,26 @@ interface AccountModalProps {
   onDeleteAccount: () => void;
 }
 
+const validatePassword = (password: string): string | null => {
+  if (password.length < 8) {
+    return "Le mot de passe doit contenir au moins 8 caractères.";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "Le mot de passe doit contenir au moins une minuscule.";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Le mot de passe doit contenir au moins une majuscule.";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Le mot de passe doit contenir au moins un chiffre.";
+  }
+  if (!/[^a-zA-Z0-9]/.test(password)) {
+    return "Le mot de passe doit contenir au moins un caractère spécial.";
+  }
+  return null;
+};
+
+
 const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onDeleteAccount }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,8 +55,10 @@ const AccountModal: React.FC<AccountModalProps> = ({ isOpen, onClose, user, onDe
       setPasswordMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas.' });
       return;
     }
-    if (newPassword.length < 6) {
-      setPasswordMessage({ type: 'error', text: 'Le mot de passe doit contenir au moins 6 caractères.' });
+    
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setPasswordMessage({ type: 'error', text: passwordError });
       return;
     }
 

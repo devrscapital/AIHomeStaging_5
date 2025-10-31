@@ -41,13 +41,17 @@ export const retouchImage = async (file: File): Promise<string> => {
         },
     });
 
-    if (!response.candidates || response.candidates.length === 0) {
-      if (response.promptFeedback?.blockReason) {
-        throw new Error(`Retouche bloquée par la sécurité (Raison: ${response.promptFeedback.blockReason}). Essayez une autre image.`);
-      }
-      throw new Error("L'IA n'a pas pu générer d'image. Essayez une photo différente ou de meilleure qualité.");
+    if (response.promptFeedback?.blockReason) {
+      const reason = response.promptFeedback.blockReason;
+      let frenchReason = "Raison inconnue";
+      if (reason === 'SAFETY') frenchReason = "contenu non sûr";
+      if (reason === 'OTHER') frenchReason = "autre raison";
+      throw new Error(`Retouche bloquée par la sécurité (Raison: ${frenchReason}). Essayez une autre image.`);
     }
 
+    if (!response.candidates || response.candidates.length === 0) {
+      throw new Error("L'IA n'a pas pu générer d'image. Essayez une photo différente ou de meilleure qualité.");
+    }
 
     if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
@@ -59,23 +63,26 @@ export const retouchImage = async (file: File): Promise<string> => {
     
     throw new Error("Aucune donnée d'image trouvée dans la réponse de l'IA.");
   } catch (error) {
-    console.error("Erreur lors de la retouche de l'image avec l'API Gemini:", error);
+    console.error("Erreur détaillée de l'API Gemini:", error);
     
     if (error instanceof Error) {
         if (error.message.includes('API key not valid')) {
             throw new Error('Clé API invalide. Vérifiez la configuration de votre projet.');
         }
-        if (error.message.includes('-image` is not accessible')) {
-            throw new Error("Le modèle d'IA d'image n'est pas accessible. Votre clé n'a peut-être pas les permissions.");
+        if (error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
+            throw new Error("Votre quota gratuit est épuisé. Pour continuer à utiliser le service, veuillez configurer la facturation sur votre projet Google AI. C'est le fonctionnement normal de l'API une fois les crédits gratuits utilisés.");
         }
-        if (error.message.includes('Deadline Exceeded')) {
-            throw new Error("La requête a expiré. Le service est peut-être surchargé, veuillez réessayer.");
+        if (error.message.includes('Deadline Exceeded') || error.message.includes('503')) {
+            throw new Error("Le service est temporairement surchargé. Veuillez réessayer dans quelques instants.");
         }
-        // Re-throw the specific messages from the try block or other unhandled errors
-        throw error; 
+        if (error.message.includes('Retouche bloquée')) {
+          throw error;
+        }
+        // Pour toute autre erreur, affichez le message réel de l'API pour un meilleur débogage.
+        throw new Error(`Échec de la retouche: ${error.message}`);
     }
     
-    // Generic fallback
+    // Fallback générique
     throw new Error("Échec de la retouche de l'image. Une erreur inconnue est survenue.");
   }
 };

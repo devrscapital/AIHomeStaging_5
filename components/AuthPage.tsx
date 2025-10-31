@@ -13,6 +13,26 @@ interface AuthPageProps {
 
 type AuthError = firebase.auth.AuthError;
 
+const validatePassword = (password: string): string | null => {
+  if (password.length < 8) {
+    return "Le mot de passe doit contenir au moins 8 caractères.";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "Le mot de passe doit contenir au moins une minuscule.";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Le mot de passe doit contenir au moins une majuscule.";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Le mot de passe doit contenir au moins un chiffre.";
+  }
+  if (!/[^a-zA-Z0-9]/.test(password)) {
+    return "Le mot de passe doit contenir au moins un caractère spécial.";
+  }
+  return null;
+};
+
+
 const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
@@ -39,7 +59,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
         setError('Cette adresse e-mail est déjà utilisée.');
         break;
       case 'auth/weak-password':
-        setError('Le mot de passe doit contenir au moins 6 caractères.');
+        setError('Le mot de passe est trop faible. Veuillez suivre les exigences.');
         break;
       case 'auth/invalid-email':
          setError('L\'adresse e-mail n\'est pas valide.');
@@ -68,10 +88,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
     
     try {
       await auth.sendPasswordResetEmail(email);
-      setMessage(`Si un compte est associé à ${email}, un lien de réinitialisation a été envoyé.`);
+      setMessage(`Si un compte est associé à ${email}, un lien de réinitialisation a été envoyé. Pensez à vérifier vos spams.`);
       setTimeout(() => {
         handleModeChange('login');
-      }, 4000);
+      }, 5000);
     } catch (err) {
       handleFirebaseError(err);
     } finally {
@@ -81,13 +101,24 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Veuillez remplir tous les champs.');
-      return;
-    }
     setIsProcessing(true);
     setError(null);
     setMessage(null);
+    
+    if (!email || !password) {
+      setError('Veuillez remplir tous les champs.');
+      setIsProcessing(false);
+      return;
+    }
+
+    if (authMode === 'signup') {
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        setError(passwordError);
+        setIsProcessing(false);
+        return;
+      }
+    }
     
     try {
       if (authMode === 'signup') {
@@ -206,7 +237,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack }) => {
               </button>
             </div>
           )}
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          {error && <p className="text-red-400 text-sm text-center break-words">{error}</p>}
           <button
             type="submit"
             disabled={isProcessing}

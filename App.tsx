@@ -329,7 +329,7 @@ const App: React.FC = () => {
           ) : (
             <button 
               onClick={() => setView('auth')}
-              className="px-3 py-2 text-sm bg-brand-primary hover:bg-brand-secondary text-white font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105"
+              className="px-2 py-1 text-[11px] sm:px-3 sm:py-2 sm:text-sm bg-brand-primary hover:bg-brand-secondary text-white font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105"
             >
               Connexion / Inscription
             </button>
