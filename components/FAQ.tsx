@@ -19,7 +19,7 @@ const FAQ: React.FC<FAQProps> = ({ items }) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-center text-white mb-8">Foire Aux Questions</h2>
+      <h2 className="text-3xl font-bold text-center text-white mb-8">FAQ's</h2>
       <div className="space-y-4">
         {items.map((item, index) => (
           <div key={index} className="bg-gray-800 rounded-lg shadow-md">

@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -42,6 +41,14 @@ export const retouchImage = async (file: File): Promise<string> => {
         },
     });
 
+    if (!response.candidates || response.candidates.length === 0) {
+      if (response.promptFeedback?.blockReason) {
+        throw new Error(`Retouche bloquée par la sécurité (Raison: ${response.promptFeedback.blockReason}). Essayez une autre image.`);
+      }
+      throw new Error("L'IA n'a pas pu générer d'image. Essayez une photo différente ou de meilleure qualité.");
+    }
+
+
     if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
             if (part.inlineData) {
@@ -50,9 +57,25 @@ export const retouchImage = async (file: File): Promise<string> => {
         }
     }
     
-    throw new Error("Aucune donnée d'image trouvée dans la réponse de l'API Gemini.");
+    throw new Error("Aucune donnée d'image trouvée dans la réponse de l'IA.");
   } catch (error) {
-    console.error("Erreur lors de la retouche de l'image avec l'API Gemini:", error instanceof Error ? error.message : String(error));
-    throw new Error("Échec de la retouche de l'image. Veuillez réessayer.");
+    console.error("Erreur lors de la retouche de l'image avec l'API Gemini:", error);
+    
+    if (error instanceof Error) {
+        if (error.message.includes('API key not valid')) {
+            throw new Error('Clé API invalide. Vérifiez la configuration de votre projet.');
+        }
+        if (error.message.includes('-image` is not accessible')) {
+            throw new Error("Le modèle d'IA d'image n'est pas accessible. Votre clé n'a peut-être pas les permissions.");
+        }
+        if (error.message.includes('Deadline Exceeded')) {
+            throw new Error("La requête a expiré. Le service est peut-être surchargé, veuillez réessayer.");
+        }
+        // Re-throw the specific messages from the try block or other unhandled errors
+        throw error; 
+    }
+    
+    // Generic fallback
+    throw new Error("Échec de la retouche de l'image. Une erreur inconnue est survenue.");
   }
 };

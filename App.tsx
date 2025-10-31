@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 // CORRECTIF DÉFINITIF: Utiliser les imports de compatibilité Firebase v8.
 import firebase from 'firebase/compat/app';
@@ -330,7 +329,7 @@ const App: React.FC = () => {
           ) : (
             <button 
               onClick={() => setView('auth')}
-              className="px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105"
+              className="px-3 py-2 text-sm bg-brand-primary hover:bg-brand-secondary text-white font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105"
             >
               Connexion / Inscription
             </button>
